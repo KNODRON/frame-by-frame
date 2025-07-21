@@ -28,7 +28,7 @@ form.addEventListener("input", () => {
   const horaMonitor = document.getElementById("horaMonitor").value.trim();
   const comentario = document.getElementById("comentario").value.trim();
 
-  const horaRegex = /^\\d{2}:\\d{2}:\\d{2}$/;
+  const horaRegex = /^\d{2}:\d{2}:\d{2}$/;
 
   // Validación principal (sin exigir comentario)
   if (!aCargo || !seguimiento || !ubicacion || !comuna || !sentido || !horaOficial || !horaMonitor) {
