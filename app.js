@@ -6,9 +6,9 @@ function autoFormatearHora(input) {
   input.addEventListener("input", function () {
     let val = this.value.replace(/\D/g, '').slice(0, 6);
     if (val.length >= 4) {
-      this.value = val.replace(/(\d{2})(\d{2})(\d{0,2})/, "$1:$2:$3");
+      this.value = val.replace(/(\\d{2})(\\d{2})(\\d{0,2})/, "$1:$2:$3");
     } else if (val.length >= 2) {
-      this.value = val.replace(/(\d{2})(\d{0,2})/, "$1:$2");
+      this.value = val.replace(/(\\d{2})(\\d{0,2})/, "$1:$2");
     } else {
       this.value = val;
     }
@@ -28,7 +28,7 @@ form.addEventListener("input", () => {
   const horaMonitor = document.getElementById("horaMonitor").value.trim();
   const comentario = document.getElementById("comentario").value.trim();
 
-  const horaRegex = /^\d{2}:\d{2}:\d{2}$/;
+  const horaRegex = /^\\d{2}:\\d{2}:\\d{2}$/;
 
   // Validación principal (sin exigir comentario)
   if (!aCargo || !seguimiento || !ubicacion || !comuna || !sentido || !horaOficial || !horaMonitor) {
@@ -42,7 +42,7 @@ form.addEventListener("input", () => {
   }
 
   let texto = 
-`LEVANTAMIENTO DE CÁMARAS
+`**LEVANTAMIENTO DE CÁMARAS**
 
 A CARGO: ${aCargo}
 SEGUIMIENTO DE: ${seguimiento}
@@ -58,4 +58,27 @@ HORA MONITOR: ${horaMonitor}`;
 
   btn.href = "https://wa.me/?text=" + encodeURIComponent(texto);
   btn.style.display = "inline-block";
+
+  // Envío automático a Google Sheets
+  const apiURL = "https://script.google.com/macros/s/URL-DE-TU-SCRIPT/exec"; // ← Reemplaza con tu URL real
+
+  fetch(apiURL, {
+    method: "POST",
+    body: JSON.stringify({
+      acargo: aCargo,
+      seguimiento: seguimiento,
+      ubicacion: ubicacion,
+      comuna: comuna,
+      sentido: sentido,
+      horaoficial: horaOficial,
+      horamonitor: horaMonitor,
+      observacion: comentario
+    }),
+    headers: {
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.text())
+  .then(data => console.log("✅ Enviado a Google Sheets:", data))
+  .catch(err => console.error("❌ Error al enviar a Sheets:", err));
 });
