@@ -3,40 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#0f9d58"/>
+  <title>LEVANTAMIENTO DE CÁMARAS</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="manifest" href="manifest.json" />
-  <title>FORMATO LEVANTAMIENTO DE CÁMARAS</title>
 </head>
 <body>
-  <header>
-    <h1>LEVANTAMIENTO DE CÁMARAS</h1>
-  </header>
+  <h1>LEVANTAMIENTO DE CÁMARAS</h1>
+  <form id="formulario">
+    <label for="aCargo">A cargo:</label>
+    <input type="text" id="aCargo" required />
 
-  <main>
-    <form id="formulario">
-      <label>A cargo: <input type="text" id="aCargo" placeholder="Nombre responsable" required></label>
-      <label>Seguimiento de: <input type="text" id="seguimiento" placeholder="vehículo o persona" required></label>
-      <label>Ubicación de la cámara: <input type="text" id="ubicacion" required></label>
-      <label>Comuna: <input type="text" id="comuna" required></label>
-      <label>Sentido: <input type="text" id="sentido" placeholder="ejm. al norte" required></label>
-      <label>Hora oficial: <input type="text" id="horaOficial" placeholder="HH:MM:SS" inputmode="numeric" required></label>
-      <label>Hora Monitor: <input type="text" id="horaMonitor" placeholder="HH:MM:SS" inputmode="numeric" required></label>
-      <label>Comentario u observación (opcional): <input type="text" id="comentario" placeholder="Ej: sujeto con polera roja" /></label>
-    </form>
+    <label for="seguimiento">Seguimiento de:</label>
+    <input type="text" id="seguimiento" placeholder="vehículo o persona" required />
 
-    <a id="btnWhatsapp" target="_blank">📤 Enviar por WhatsApp</a>
-  </main>
+    <label for="ubicacion">Ubicación de la cámara:</label>
+    <input type="text" id="ubicacion" required />
+
+    <label for="comuna">Comuna:</label>
+    <input type="text" id="comuna" required />
+
+    <label for="sentido">Sentido:</label>
+    <input type="text" id="sentido" placeholder="ejm. al norte" required />
+
+    <label for="horaOficial">Hora oficial:</label>
+    <input type="text" id="horaOficial" inputmode="numeric" placeholder="HH:MM:SS" required />
+
+    <label for="horaMonitor">Hora Monitor:</label>
+    <input type="text" id="horaMonitor" inputmode="numeric" placeholder="HH:MM:SS" required />
+
+    <label for="comentario">Comentario u observación (opcional):</label>
+    <input type="text" id="comentario" placeholder="Ej: sujeto con polera roja" />
+
+    <a id="btnWhatsapp" style="display: none;" class="boton" target="_blank">
+      📲 Enviar por WhatsApp
+    </a>
+  </form>
 
   <footer>
-    <p>&copy; 2025 - KNODRON</p>
+    <small>© 2025 - KNODRON</small>
   </footer>
 
   <script src="app.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
-    }
-  </script>
 </body>
 </html>
