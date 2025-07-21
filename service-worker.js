@@ -1,10 +1,10 @@
 const CACHE_NAME = 'levantamiento-camaras-v2';
 const urlsToCache = [
-  'índice.html',
-  'estilo.css',
-  'aplicación.js',
-  'manifiesto.json',
-  'icono.png'
+  'index.html',
+  'style.css',
+  'app.js',
+  'manifest.json',
+  'icono.png
 ];
 
 self.addEventListener('install', event => {
