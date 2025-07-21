@@ -1,10 +1,10 @@
-const CACHE_NAME = 'levantamiento-cam-v1';
+const CACHE_NAME = 'levantamiento-camaras-v2';
 const urlsToCache = [
   'index.html',
   'style.css',
   'app.js',
   'manifest.json',
-  'icono.png
+  'icono.png'
 ];
 
 self.addEventListener('install', event => {
