@@ -60,7 +60,7 @@ HORA MONITOR: ${horaMonitor}`;
   btn.style.display = "inline-block";
 
   // Envío automático a Google Sheets
-  const apiURL = "https://script.google.com/macros/s/URL-DE-TU-SCRIPT/exec"; // ← Reemplaza con tu URL real
+  const apiURL = "https://script.google.com/macros/s/AKfycbw4aIGv-G9o3PlhmwKg9FyahM-s_LJba5TmY3lngCiGU9yhfYuOcWeovrtIvfbXQGFe/exec"; // ← Reemplaza con tu URL real
 
   fetch(apiURL, {
     method: "POST",
