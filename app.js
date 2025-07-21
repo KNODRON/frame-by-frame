@@ -60,7 +60,7 @@ HORA MONITOR: ${horaMonitor}`;
   btn.style.display = "inline-block";
 
   // Enviar a Google Sheets
-  const apiURL = "https://script.google.com/macros/s/AKfycbyiTDe3f7cbvJbav-0_UwCP7R7xtDZnFWVuMCqqCOGM4LJtIACGUoOlv2EeuoZ2kjxl/exec";
+  const apiURL = "https://script.google.com/macros/s/AKfycbx_9gbKFZYHPZrVcp6mh1FvU4HPnavMzxbPiD98JEsaecfo-DU-C7sdd5AYWHI0QCe7/exec";
 
   fetch(apiURL, {
     method: "POST",
