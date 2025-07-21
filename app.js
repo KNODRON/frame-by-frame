@@ -6,9 +6,9 @@ function autoFormatearHora(input) {
   input.addEventListener("input", function () {
     let val = this.value.replace(/\D/g, '').slice(0, 6);
     if (val.length >= 4) {
-      this.value = val.replace(/(\\d{2})(\\d{2})(\\d{0,2})/, "$1:$2:$3");
+      this.value = val.replace(/(\d{2})(\d{2})(\d{0,2})/, "$1:$2:$3");
     } else if (val.length >= 2) {
-      this.value = val.replace(/(\\d{2})(\\d{0,2})/, "$1:$2");
+      this.value = val.replace(/(\d{2})(\d{0,2})/, "$1:$2");
     } else {
       this.value = val;
     }
