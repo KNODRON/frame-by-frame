@@ -30,13 +30,13 @@ form.addEventListener("input", () => {
 
   const horaRegex = /^\d{2}:\d{2}:\d{2}$/;
 
-  // Validación principal (sin exigir comentario)
-  if (!aCargo || !seguimiento || !ubicacion || !comuna || !sentido || !horaOficial || !horaMonitor) {
-    btn.style.display = "none";
-    return;
-  }
+  const camposCompletos = (
+    aCargo && seguimiento && ubicacion && comuna &&
+    sentido && horaOficial && horaMonitor &&
+    horaRegex.test(horaOficial) && horaRegex.test(horaMonitor)
+  );
 
-  if (!horaRegex.test(horaOficial) || !horaRegex.test(horaMonitor)) {
+  if (!camposCompletos) {
     btn.style.display = "none";
     return;
   }
@@ -59,8 +59,8 @@ HORA MONITOR: ${horaMonitor}`;
   btn.href = "https://wa.me/?text=" + encodeURIComponent(texto);
   btn.style.display = "inline-block";
 
-  // Envío automático a Google Sheets
-  const apiURL = "https://script.google.com/macros/s/AKfycbyiTDe3f7cbvJbav-0_UwCP7R7xtDZnFWVuMCqqCOGM4LJtIACGUoOlv2EeuoZ2kjxl/exec"; // ← Reemplaza con tu URL real
+  // Enviar a Google Sheets
+  const apiURL = "https://script.google.com/macros/s/AKfycbyiTDe3f7cbvJbav-0_UwCP7R7xtDZnFWVuMCqqCOGM4LJtIACGUoOlv2EeuoZ2kjxl/exec";
 
   fetch(apiURL, {
     method: "POST",
@@ -82,3 +82,4 @@ HORA MONITOR: ${horaMonitor}`;
   .then(data => console.log("✅ Enviado a Google Sheets:", data))
   .catch(err => console.error("❌ Error al enviar a Sheets:", err));
 });
+
