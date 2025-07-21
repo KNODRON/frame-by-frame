@@ -1,7 +1,7 @@
 const form = document.getElementById("formulario");
 const btn = document.getElementById("btnWhatsapp");
 
-// Formatear horas automáticamente a HH:MM:SS
+// Formatear HH:MM:SS automáticamente
 function autoFormatearHora(input) {
   input.addEventListener("input", function () {
     let val = this.value.replace(/\D/g, '').slice(0, 6);
@@ -60,7 +60,7 @@ HORA MONITOR: ${horaMonitor}`;
   btn.style.display = "inline-block";
 
   // Enviar a Google Sheets
-  const apiURL = "https://script.google.com/macros/s/AKfycbx_9gbKFZYHPZrVcp6mh1FvU4HPnavMzxbPiD98JEsaecfo-DU-C7sdd5AYWHI0QCe7/exec";
+  const apiURL = "https://script.google.com/macros/s/AKfycbx_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/exec"; // ← ⚠️ REEMPLAZAR AQUÍ
 
   fetch(apiURL, {
     method: "POST",
@@ -72,7 +72,7 @@ HORA MONITOR: ${horaMonitor}`;
       sentido: sentido,
       horaoficial: horaOficial,
       horamonitor: horaMonitor,
-      observacion: comentario
+      comentario: comentario
     }),
     headers: {
       "Content-Type": "application/json"
@@ -82,4 +82,3 @@ HORA MONITOR: ${horaMonitor}`;
   .then(data => console.log("✅ Enviado a Google Sheets:", data))
   .catch(err => console.error("❌ Error al enviar a Sheets:", err));
 });
-
