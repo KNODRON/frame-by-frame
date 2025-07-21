@@ -1,4 +1,4 @@
-const CACHE_NAME = 'levantamiento-camaras-v2';
+const CACHE_NAME = 'levantamiento-cam-v1';
 const urlsToCache = [
   'index.html',
   'style.css',
