@@ -1,84 +1,36 @@
-const form = document.getElementById("formulario");
-const btn = document.getElementById("btnWhatsapp");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+const captureBtn = document.getElementById("captureBtn");
+const videoInput = document.getElementById("videoInput");
+const brillo = document.getElementById("brillo");
+const contraste = document.getElementById("contraste");
+const ocrBtn = document.getElementById("ocrBtn");
+const ocrResult = document.getElementById("ocrResult");
 
-// Formatear HH:MM:SS automáticamente
-function autoFormatearHora(input) {
-  input.addEventListener("input", function () {
-    let val = this.value.replace(/\D/g, '').slice(0, 6);
-    if (val.length >= 4) {
-      this.value = val.replace(/(\d{2})(\d{2})(\d{0,2})/, "$1:$2:$3");
-    } else if (val.length >= 2) {
-      this.value = val.replace(/(\d{2})(\d{0,2})/, "$1:$2");
-    } else {
-      this.value = val;
-    }
+videoInput.addEventListener("change", () => {
+  const file = videoInput.files[0];
+  if (file) {
+    const url = URL.createObjectURL(file);
+    video.src = url;
+  }
+});
+
+captureBtn.addEventListener("click", () => {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+});
+
+ocrBtn.addEventListener("click", () => {
+  ocrResult.textContent = "[Analizando...]";
+  Tesseract.recognize(canvas, 'eng', {
+    logger: m => console.log(m)
+  }).then(({ data: { text } }) => {
+    ocrResult.textContent = text || "[No se detectó texto]";
+  }).catch(err => {
+    ocrResult.textContent = "[Error al procesar OCR]";
+    console.error(err);
   });
-}
-
-autoFormatearHora(document.getElementById("horaOficial"));
-autoFormatearHora(document.getElementById("horaMonitor"));
-
-form.addEventListener("input", () => {
-  const aCargo = document.getElementById("aCargo").value.trim();
-  const seguimiento = document.getElementById("seguimiento").value.trim();
-  const ubicacion = document.getElementById("ubicacion").value.trim();
-  const comuna = document.getElementById("comuna").value.trim();
-  const sentido = document.getElementById("sentido").value.trim();
-  const horaOficial = document.getElementById("horaOficial").value.trim();
-  const horaMonitor = document.getElementById("horaMonitor").value.trim();
-  const comentario = document.getElementById("comentario").value.trim();
-
-  const horaRegex = /^\d{2}:\d{2}:\d{2}$/;
-
-  const camposCompletos = (
-    aCargo && seguimiento && ubicacion && comuna &&
-    sentido && horaOficial && horaMonitor &&
-    horaRegex.test(horaOficial) && horaRegex.test(horaMonitor)
-  );
-
-  if (!camposCompletos) {
-    btn.style.display = "none";
-    return;
-  }
-
-  let texto = 
-`**LEVANTAMIENTO DE CÁMARAS**
-
-A CARGO: ${aCargo}
-SEGUIMIENTO DE: ${seguimiento}
-UBICACIÓN DE LA CÁMARA: ${ubicacion}
-COMUNA: ${comuna}
-SENTIDO: ${sentido}
-HORA OFICIAL: ${horaOficial}
-HORA MONITOR: ${horaMonitor}`;
-
-  if (comentario !== "") {
-    texto += `\nOBSERVACIÓN: ${comentario}`;
-  }
-
-  btn.href = "https://wa.me/?text=" + encodeURIComponent(texto);
-  btn.style.display = "inline-block";
-
-  // Enviar a Google Sheets
-  const apiURL = "https://script.google.com/macros/s/AKfycbx_9gbKFZYHPZrVcp6mh1FvU4HPnavMzxbPiD98JEsaecfo-DU-C7sdd5AYWHI0QCe7/exec"; // ← ⚠️ REEMPLAZAR AQUÍ
-
-  fetch(apiURL, {
-    method: "POST",
-    body: JSON.stringify({
-      acargo: aCargo,
-      seguimiento: seguimiento,
-      ubicacion: ubicacion,
-      comuna: comuna,
-      sentido: sentido,
-      horaoficial: horaOficial,
-      horamonitor: horaMonitor,
-      comentario: comentario
-    }),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  .then(res => res.text())
-  .then(data => console.log("✅ Enviado a Google Sheets:", data))
-  .catch(err => console.error("❌ Error al enviar a Sheets:", err));
 });
