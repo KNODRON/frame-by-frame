@@ -14,7 +14,7 @@ const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 let rotation = 0;
 let selection = null;
 let isDragging = false;
-let currentImage = null;
+let baseImage = null;
 
 // Cargar video
 videoInput.addEventListener("change", () => {
@@ -25,53 +25,44 @@ videoInput.addEventListener("change", () => {
   }
 });
 
-// Capturar imagen con filtros aplicados
+// Capturar fotograma
 captureBtn.addEventListener("click", () => {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-
-  ctx.save();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  applyRotation();
-
-  ctx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  ctx.restore();
-
-  currentImage = new Image();
-  currentImage.src = canvas.toDataURL();
   selection = null;
+
+  baseImage = new Image();
+  baseImage.onload = () => redrawCanvas();
+  baseImage.src = captureFrame();
 });
 
-// Rotación
-rotateLeftBtn.addEventListener("click", () => {
-  rotation -= 90;
-  redrawCanvas();
-});
+function captureFrame() {
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = video.videoWidth;
+  tempCanvas.height = video.videoHeight;
+  const tempCtx = tempCanvas.getContext("2d");
 
-rotateRightBtn.addEventListener("click", () => {
-  rotation += 90;
-  redrawCanvas();
-});
+  tempCtx.save();
+  tempCtx.translate(tempCanvas.width / 2, tempCanvas.height / 2);
+  tempCtx.rotate((rotation * Math.PI) / 180);
+  tempCtx.translate(-tempCanvas.width / 2, -tempCanvas.height / 2);
+  tempCtx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
+  tempCtx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.restore();
 
-function applyRotation() {
-  const radians = (rotation * Math.PI) / 180;
-  ctx.translate(canvas.width / 2, canvas.height / 2);
-  ctx.rotate(radians);
-  ctx.translate(-canvas.width / 2, -canvas.height / 2);
+  return tempCanvas.toDataURL();
 }
 
+// Redibuja la imagen base con filtros activos
 function redrawCanvas() {
-  if (!currentImage) return;
+  if (!baseImage) return;
+
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  applyRotation();
-  ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+  ctx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
+  ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
   ctx.restore();
-  drawSelectionBox();
-}
 
-function drawSelectionBox() {
   if (selection) {
     ctx.strokeStyle = "#00ffcc";
     ctx.lineWidth = 2;
@@ -79,7 +70,52 @@ function drawSelectionBox() {
   }
 }
 
-// OCR con preprocesamiento real
+// Aplicar rotación
+rotateLeftBtn.addEventListener("click", () => {
+  rotation -= 90;
+  baseImage.src = captureFrame();
+});
+
+rotateRightBtn.addEventListener("click", () => {
+  rotation += 90;
+  baseImage.src = captureFrame();
+});
+
+// Brillo y contraste en tiempo real
+brillo.addEventListener("input", redrawCanvas);
+contraste.addEventListener("input", redrawCanvas);
+
+// Limpiar selección
+clearSelectionBtn.addEventListener("click", () => {
+  selection = null;
+  redrawCanvas();
+});
+
+// Selección con mouse
+canvas.addEventListener("mousedown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  selection = {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
+    width: 0,
+    height: 0
+  };
+  isDragging = true;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDragging || !selection) return;
+  const rect = canvas.getBoundingClientRect();
+  selection.width = (e.clientX - rect.left) - selection.x;
+  selection.height = (e.clientY - rect.top) - selection.y;
+  redrawCanvas();
+});
+
+canvas.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+
+// OCR con preprocesamiento y zoom real
 ocrBtn.addEventListener("click", () => {
   if (!selection) {
     ocrResult.textContent = "[Selecciona una zona con el mouse primero]";
@@ -87,37 +123,32 @@ ocrBtn.addEventListener("click", () => {
   }
 
   const { x, y, width, height } = selection;
+  const scaleFactor = 3;
 
   const tempCanvas = document.createElement("canvas");
-  const scaleFactor = 3;
   tempCanvas.width = width * scaleFactor;
   tempCanvas.height = height * scaleFactor;
   const tempCtx = tempCanvas.getContext("2d");
 
-  const rawData = ctx.getImageData(x, y, width, height);
-
-  const grayData = tempCtx.createImageData(width, height);
-  for (let i = 0; i < rawData.data.length; i += 4) {
-    const r = rawData.data[i];
-    const g = rawData.data[i + 1];
-    const b = rawData.data[i + 2];
-    const gray = (r + g + b) / 3;
-    const bin = gray > 110 ? 255 : 0;
-
-    grayData.data[i] = bin;
-    grayData.data[i + 1] = bin;
-    grayData.data[i + 2] = bin;
-    grayData.data[i + 3] = 255;
-  }
-
-  const smallCanvas = document.createElement("canvas");
-  smallCanvas.width = width;
-  smallCanvas.height = height;
-  const smallCtx = smallCanvas.getContext("2d");
-  smallCtx.putImageData(grayData, 0, 0);
-
   tempCtx.imageSmoothingEnabled = false;
-  tempCtx.drawImage(smallCanvas, 0, 0, width * scaleFactor, height * scaleFactor);
+  tempCtx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
+
+  // Extraer zona y escalar
+  tempCtx.drawImage(canvas, x, y, width, height, 0, 0, tempCanvas.width, tempCanvas.height);
+
+  // Convertir a grises + binarizar
+  const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+  for (let i = 0; i < imgData.data.length; i += 4) {
+    const avg = (imgData.data[i] + imgData.data[i + 1] + imgData.data[i + 2]) / 3;
+    const bin = avg > 110 ? 255 : 0;
+    imgData.data[i] = bin;
+    imgData.data[i + 1] = bin;
+    imgData.data[i + 2] = bin;
+  }
+  tempCtx.putImageData(imgData, 0, 0);
+
+  // Mostrar la imagen tratada visualmente (opcional)
+  // document.body.appendChild(tempCanvas); // <-- activar si quieres verla
 
   ocrResult.textContent = "[Analizando OCR con preprocesamiento...]";
 
@@ -146,34 +177,4 @@ ocrBtn.addEventListener("click", () => {
     ocrResult.textContent = "[Error en OCR]";
     console.error(err);
   });
-});
-
-// Limpiar selección
-clearSelectionBtn.addEventListener("click", () => {
-  selection = null;
-  redrawCanvas();
-});
-
-// Selección con mouse funcional
-canvas.addEventListener("mousedown", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  selection = {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
-    width: 0,
-    height: 0
-  };
-  isDragging = true;
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (!isDragging || !selection) return;
-  const rect = canvas.getBoundingClientRect();
-  selection.width = (e.clientX - rect.left) - selection.x;
-  selection.height = (e.clientY - rect.top) - selection.y;
-  redrawCanvas();
-});
-
-canvas.addEventListener("mouseup", () => {
-  isDragging = false;
 });
