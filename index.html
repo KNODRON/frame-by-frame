@@ -2,36 +2,41 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Analizador de Videos - OS9</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frame-by-Frame | OCR & Vehículos</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
+
+  <!-- OCR + IA -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>🔍 Analizador de Videos - OS9</h1>
+  <h1>🧠 Análisis Frame-by-Frame</h1>
 
-    <input type="file" id="videoInput" accept="video/mp4" />
-    <video id="video" controls></video>
-
-    <button id="captureBtn">📸 Capturar Fotograma</button>
-    <canvas id="canvas"></canvas>
-
-    <button id="clearSelectionBtn">🧼 Limpiar Selección</button>
-
-    <div style="margin: 10px;">
-      <button id="rotateLeftBtn">↩️ Girar Izquierda</button>
-      <button id="rotateRightBtn">↪️ Girar Derecha</button>
-    </div>
-    
-    <div class="filters">
-      <label>Brillo: <input type="range" id="brillo" min="0.5" max="2" step="0.1" value="1" /></label>
-      <label>Contraste: <input type="range" id="contraste" min="0.5" max="2" step="0.1" value="1" /></label>
-    </div>
-
-    <button id="ocrBtn">🧠 Ejecutar OCR</button>
-    <pre id="ocrResult">[ OCR pendiente... ]</pre>
-  </div>
+  <input type="file" id="videoInput" accept="video/*" />
+  <br /><br />
+  <video id="video" controls></video>
+  <br /><br />
+  <button id="captureBtn">📸 Capturar Fotograma</button>
+  <br /><br />
+  <canvas id="canvas"></canvas>
+  <br />
+  <button id="clearSelectionBtn">🧽 Limpiar Selección</button>
+  <br /><br />
+  <button id="rotateLeftBtn">🌀 Girar Izquierda</button>
+  <button id="rotateRightBtn">🌀 Girar Derecha</button>
+  <br /><br />
+  <label for="brillo">Brillo:</label>
+  <input type="range" id="brillo" min="0.1" max="2" step="0.1" value="1" />
+  &nbsp;&nbsp;
+  <label for="contraste">Contraste:</label>
+  <input type="range" id="contraste" min="0.1" max="2" step="0.1" value="1" />
+  <br /><br />
+  <button id="ocrBtn">🔍 Ejecutar OCR</button>
+  <button id="detectarVehiculosBtn">🚗 Detectar Vehículos</button>
+  <br /><br />
+  <pre id="ocrResult">[Selecciona una zona con el mouse primero]</pre>
 
   <script src="app.js"></script>
 </body>
