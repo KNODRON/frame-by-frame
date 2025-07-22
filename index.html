@@ -8,6 +8,39 @@
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4"></script>
+  <style>
+    body {
+      background-color: #111;
+      color: #00ffcc;
+      font-family: monospace;
+      text-align: center;
+      margin: 0;
+      padding: 2rem;
+    }
+    button, input[type="file"], input[type="range"] {
+      margin: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #00ffcc;
+      background-color: #000;
+      color: #00ffcc;
+    }
+    video, canvas {
+      border: 1px solid #00ffcc;
+      margin: 1rem auto;
+      display: block;
+    }
+    pre {
+      border: 1px solid #00ffcc;
+      padding: 1rem;
+      white-space: pre-wrap;
+      color: #00ffcc;
+      background: #000;
+    }
+    label {
+      margin: 0 1rem;
+    }
+  </style>
 </head>
 <body>
   <h1>🧪 Análisis Frame-by-Frame</h1>
@@ -24,7 +57,7 @@
   <button id="clearSelectionBtn">🍊 Limpiar Selección</button>
   <br><br>
 
-  <button id="rotateLeftBtn">🔙 Girar Izquierda</button>
+  <button id="rotateLeftBtn">🖙 Girar Izquierda</button>
   <button id="rotateRightBtn">🔢 Girar Derecha</button>
 
   <br><br>
