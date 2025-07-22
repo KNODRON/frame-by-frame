@@ -178,3 +178,47 @@ ocrBtn.addEventListener("click", () => {
     console.error(err);
   });
 });
+const detectarVehiculosBtn = document.getElementById("detectarVehiculosBtn");
+
+let cocoModel = null;
+
+// Cargar modelo al inicio
+cocoSsd.load().then(model => {
+  cocoModel = model;
+  console.log("✅ Modelo COCO-SSD cargado");
+});
+
+// Detección sobre imagen actual del canvas
+detectarVehiculosBtn.addEventListener("click", async () => {
+  if (!cocoModel || !baseImage) {
+    alert("Modelo aún cargando o no se ha capturado imagen.");
+    return;
+  }
+
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = canvas.width;
+  tempCanvas.height = canvas.height;
+  const tempCtx = tempCanvas.getContext("2d");
+  tempCtx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+
+  const predictions = await cocoModel.detect(tempCanvas);
+
+  redrawCanvas();
+
+  predictions.forEach(pred => {
+    if (["car", "truck", "bus", "motorcycle"].includes(pred.class) && pred.score > 0.5) {
+      const [x, y, w, h] = pred.bbox;
+
+      ctx.strokeStyle = "#00ff00";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = "#00ff00";
+      ctx.font = "14px monospace";
+      ctx.fillText(`${pred.class} (${(pred.score * 100).toFixed(1)}%)`, x, y - 5);
+    }
+  });
+
+  if (predictions.length === 0) {
+    ocrResult.textContent = "[No se detectaron vehículos]";
+  }
+});
