@@ -1,41 +1,41 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Frame-by-Frame | OCR & Vehículos</title>
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- OCR + IA -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚖️ Análisis Frame-by-Frame</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
   <h1>🧠 Análisis Frame-by-Frame</h1>
 
-  <input type="file" id="videoInput" accept="video/*" />
-  <br /><br />
-  <video id="video" controls></video>
-  <br /><br />
-  <button id="captureBtn">📸 Capturar Fotograma</button>
-  <br /><br />
-  <canvas id="canvas"></canvas>
-  <br />
-  <button id="clearSelectionBtn">🧽 Limpiar Selección</button>
-  <br /><br />
-  <button id="rotateLeftBtn">🌀 Girar Izquierda</button>
-  <button id="rotateRightBtn">🌀 Girar Derecha</button>
-  <br /><br />
+  <input type="file" id="videoInput" accept="video/mp4">
+  <br><br>
+  <video id="video" width="480" controls></video>
+  <br>
+  <button id="captureBtn">🎨 Capturar Fotograma</button>
+  <br><br>
+  <canvas id="canvas" width="480" height="360"></canvas>
+  <br><br>
+
+  <button id="clearSelectionBtn">🍍 Limpiar Selección</button>
+  <button id="rotateLeftBtn">🔀 Girar Izquierda</button>
+  <button id="rotateRightBtn">🔁 Girar Derecha</button>
+
+  <br><br>
   <label for="brillo">Brillo:</label>
-  <input type="range" id="brillo" min="0.1" max="2" step="0.1" value="1" />
-  &nbsp;&nbsp;
+  <input type="range" id="brillo" min="0.5" max="2" value="1" step="0.1">
   <label for="contraste">Contraste:</label>
-  <input type="range" id="contraste" min="0.1" max="2" step="0.1" value="1" />
-  <br /><br />
-  <button id="ocrBtn">🔍 Ejecutar OCR</button>
-  <button id="detectarVehiculosBtn">🚗 Detectar Vehículos</button>
-  <br /><br />
+  <input type="range" id="contraste" min="0.5" max="2" value="1" step="0.1">
+
+  <br><br>
+  <button id="ocrBtn">🧠 Ejecutar OCR</button>
+  <button id="vehicleDetectBtn">🚗 Detectar Vehículos</button>
+
+  <br><br>
   <pre id="ocrResult">[Selecciona una zona con el mouse primero]</pre>
 
   <script src="app.js"></script>
