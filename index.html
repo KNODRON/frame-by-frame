@@ -3,44 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LEVANTAMIENTO DE CÁMARAS</title>
+  <title>Analizador de Videos - OS9</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 </head>
 <body>
-  <h1>LEVANTAMIENTO DE CÁMARAS</h1>
-  <form id="formulario">
-    <label for="aCargo">A cargo:</label>
-    <input type="text" id="aCargo" required />
+  <div class="container">
+    <h1>🔍 Analizador de Videos - OS9</h1>
 
-    <label for="seguimiento">Seguimiento de:</label>
-    <input type="text" id="seguimiento" placeholder="vehículo o persona" required />
+    <input type="file" id="videoInput" accept="video/mp4" />
+    <video id="video" controls></video>
 
-    <label for="ubicacion">Ubicación de la cámara:</label>
-    <input type="text" id="ubicacion" required />
+    <button id="captureBtn">📸 Capturar Fotograma</button>
+    <canvas id="canvas"></canvas>
 
-    <label for="comuna">Comuna:</label>
-    <input type="text" id="comuna" required />
+    <div class="filters">
+      <label>Brillo: <input type="range" id="brillo" min="0.5" max="2" step="0.1" value="1" /></label>
+      <label>Contraste: <input type="range" id="contraste" min="0.5" max="2" step="0.1" value="1" /></label>
+    </div>
 
-    <label for="sentido">Sentido:</label>
-    <input type="text" id="sentido" placeholder="ejm. al norte" required />
-
-    <label for="horaOficial">Hora oficial:</label>
-    <input type="text" id="horaOficial" inputmode="numeric" placeholder="HH:MM:SS" required />
-
-    <label for="horaMonitor">Hora Monitor:</label>
-    <input type="text" id="horaMonitor" inputmode="numeric" placeholder="HH:MM:SS" required />
-
-    <label for="comentario">Comentario u observación (opcional):</label>
-    <input type="text" id="comentario" placeholder="Ej: sujeto con polera roja" />
-
-    <a id="btnWhatsapp" style="display: none;" class="boton" target="_blank">
-      📲 Enviar por WhatsApp
-    </a>
-  </form>
-
-  <footer>
-    <small>© 2025 - KNODRON</small>
-  </footer>
+    <button id="ocrBtn">🧠 Ejecutar OCR</button>
+    <pre id="ocrResult">[ OCR pendiente... ]</pre>
+  </div>
 
   <script src="app.js"></script>
 </body>
