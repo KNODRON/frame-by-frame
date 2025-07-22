@@ -90,14 +90,48 @@ ocrBtn.addEventListener("click", () => {
   }
 
   const { x, y, width, height } = selection;
+
+  // Crear canvas temporal para preprocesamiento
   const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = width;
-  tempCanvas.height = height;
+  const scaleFactor = 3; // Aumentamos resolución para OCR
+  tempCanvas.width = width * scaleFactor;
+  tempCanvas.height = height * scaleFactor;
   const tempCtx = tempCanvas.getContext("2d");
-  tempCtx.drawImage(canvas, x, y, width, height, 0, 0, width, height);
 
-  ocrResult.textContent = "[Analizando OCR...]";
+  // Extraer imagen original desde el canvas
+  const rawData = ctx.getImageData(x, y, width, height);
 
+  // Preprocesamiento: convertir a escala de grises + binarización
+  let grayData = tempCtx.createImageData(width, height);
+  for (let i = 0; i < rawData.data.length; i += 4) {
+    const r = rawData.data[i];
+    const g = rawData.data[i + 1];
+    const b = rawData.data[i + 2];
+    const gray = (r + g + b) / 3;
+
+    const bin = gray > 110 ? 255 : 0; // Umbral binarizado
+
+    grayData.data[i] = bin;
+    grayData.data[i + 1] = bin;
+    grayData.data[i + 2] = bin;
+    grayData.data[i + 3] = 255;
+  }
+
+  // Dibujar imagen binarizada y escalar
+  const tempSmallCanvas = document.createElement("canvas");
+  tempSmallCanvas.width = width;
+  tempSmallCanvas.height = height;
+  const smallCtx = tempSmallCanvas.getContext("2d");
+  smallCtx.putImageData(grayData, 0, 0);
+
+  // Escalar a canvas grande
+  tempCtx.imageSmoothingEnabled = false;
+  tempCtx.drawImage(tempSmallCanvas, 0, 0, width * scaleFactor, height * scaleFactor);
+
+  // Mostrar estado
+  ocrResult.textContent = "[Analizando OCR con preprocesamiento...]";
+
+  // OCR sobre imagen procesada
   Tesseract.recognize(tempCanvas, 'eng', {
     logger: m => console.log(m)
   }).then(({ data: { text } }) => {
@@ -123,34 +157,4 @@ ocrBtn.addEventListener("click", () => {
     ocrResult.textContent = "[Error en OCR]";
     console.error(err);
   });
-});
-
-// Limpiar selección
-clearSelectionBtn.addEventListener("click", () => {
-  selection = null;
-  drawCanvas();
-});
-
-// Selección de zona con mouse
-canvas.addEventListener("mousedown", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  selection = {
-    x: e.clientX - rect.left,
-    y: e.clientY - rect.top,
-    width: 0,
-    height: 0
-  };
-  isDragging = true;
-});
-
-canvas.addEventListener("mousemove", (e) => {
-  if (!isDragging || !selection) return;
-  const rect = canvas.getBoundingClientRect();
-  selection.width = (e.clientX - rect.left) - selection.x;
-  selection.height = (e.clientY - rect.top) - selection.y;
-  drawCanvas();
-});
-
-canvas.addEventListener("mouseup", () => {
-  isDragging = false;
 });
