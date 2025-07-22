@@ -9,10 +9,12 @@ const ocrBtn = document.getElementById("ocrBtn");
 const ocrResult = document.getElementById("ocrResult");
 const rotateLeftBtn = document.getElementById("rotateLeftBtn");
 const rotateRightBtn = document.getElementById("rotateRightBtn");
+const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 
 let rotation = 0;
 let selection = null;
 let isDragging = false;
+let imageData = null;
 
 // Cargar video
 videoInput.addEventListener("change", () => {
@@ -35,9 +37,13 @@ captureBtn.addEventListener("click", () => {
   ctx.filter = `brightness(${brillo.value}) contrast(${contraste.value})`;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   ctx.restore();
+
+  imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  selection = null;
+  drawCanvas();
 });
 
-// Aplicar rotación
+// Rotación
 rotateLeftBtn.addEventListener("click", () => {
   rotation -= 90;
   redrawCanvas();
@@ -56,18 +62,27 @@ function applyRotation() {
 }
 
 function redrawCanvas() {
-  const image = new Image();
-  image.src = canvas.toDataURL();
-  image.onload = () => {
-    ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    applyRotation();
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-  };
+  if (!imageData) return;
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  applyRotation();
+  ctx.putImageData(imageData, 0, 0);
+  ctx.restore();
+  drawCanvas();
 }
 
-// OCR sobre zona seleccionada
+function drawCanvas() {
+  if (!imageData) return;
+  ctx.putImageData(imageData, 0, 0);
+
+  if (selection) {
+    ctx.strokeStyle = "#00ffcc";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(selection.x, selection.y, selection.width, selection.height);
+  }
+}
+
+// OCR sobre zona seleccionada + validación
 ocrBtn.addEventListener("click", () => {
   if (!selection) {
     ocrResult.textContent = "[Selecciona una zona con el mouse primero]";
@@ -86,11 +101,34 @@ ocrBtn.addEventListener("click", () => {
   Tesseract.recognize(tempCanvas, 'eng', {
     logger: m => console.log(m)
   }).then(({ data: { text } }) => {
-    ocrResult.textContent = text || "[No se detectó texto]";
+    const textoOriginal = text.trim();
+    let limpio = textoOriginal.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+
+    const patrones = [
+      /^[A-Z]{2}[A-Z]{2}[0-9]{2}$/,       // BBWB40, CD0510
+      /^[A-Z]{3}[0-9]{2,3}$/,             // BJH61, VPU184
+      /^[RPZ]{1}[0-9]{3,5}$/,             // RP2001, Z3750
+      /^[A-Z]{2}[0-9]{2,4}$/,             // JA1000, WS1900
+      /^[A-Z]{1,4}[0-9]{1,4}$/            // General
+    ];
+
+    const esPatente = patrones.some(p => limpio.match(p));
+
+    if (limpio && esPatente) {
+      ocrResult.textContent = `🧠 Texto detectado: ${textoOriginal}\n✅ Posible patente: ${limpio}`;
+    } else {
+      ocrResult.textContent = `🧠 Texto detectado: ${textoOriginal}\n❌ No parece ser una patente chilena`;
+    }
   }).catch(err => {
     ocrResult.textContent = "[Error en OCR]";
     console.error(err);
   });
+});
+
+// Limpiar selección
+clearSelectionBtn.addEventListener("click", () => {
+  selection = null;
+  drawCanvas();
 });
 
 // Selección de zona con mouse
@@ -106,26 +144,13 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  if (isDragging && selection) {
-    const rect = canvas.getBoundingClientRect();
-    selection.width = (e.clientX - rect.left) - selection.x;
-    selection.height = (e.clientY - rect.top) - selection.y;
-    drawSelection();
-  }
+  if (!isDragging || !selection) return;
+  const rect = canvas.getBoundingClientRect();
+  selection.width = (e.clientX - rect.left) - selection.x;
+  selection.height = (e.clientY - rect.top) - selection.y;
+  drawCanvas();
 });
 
 canvas.addEventListener("mouseup", () => {
   isDragging = false;
 });
-
-function drawSelection() {
-  ctx.save();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#00ffcc";
-  ctx.lineWidth = 2;
-  if (selection) {
-    ctx.strokeRect(selection.x, selection.y, selection.width, selection.height);
-  }
-  ctx.restore();
-}
