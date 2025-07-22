@@ -158,3 +158,26 @@ ocrBtn.addEventListener("click", () => {
     console.error(err);
   });
 });
+canvas.addEventListener("mousedown", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  selection = {
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
+    width: 0,
+    height: 0
+  };
+  isDragging = true;
+});
+
+canvas.addEventListener("mousemove", (e) => {
+  if (!isDragging || !selection) return;
+  const rect = canvas.getBoundingClientRect();
+  selection.width = (e.clientX - rect.left) - selection.x;
+  selection.height = (e.clientY - rect.top) - selection.y;
+  drawCanvas();
+});
+
+canvas.addEventListener("mouseup", () => {
+  isDragging = false;
+});
+
