@@ -14,7 +14,7 @@ const clearSelectionBtn = document.getElementById("clearSelectionBtn");
 let rotation = 0;
 let selection = null;
 let isDragging = false;
-let imageData = null;
+let currentImage = null;
 
 // Cargar video
 videoInput.addEventListener("change", () => {
@@ -38,9 +38,9 @@ captureBtn.addEventListener("click", () => {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   ctx.restore();
 
-  imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  currentImage = new Image();
+  currentImage.src = canvas.toDataURL();
   selection = null;
-  drawCanvas();
 });
 
 // Rotación
@@ -62,19 +62,16 @@ function applyRotation() {
 }
 
 function redrawCanvas() {
-  if (!imageData) return;
+  if (!currentImage) return;
   ctx.save();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   applyRotation();
-  ctx.putImageData(imageData, 0, 0);
+  ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
   ctx.restore();
-  drawCanvas();
+  drawSelectionBox();
 }
 
-function drawCanvas() {
-  if (!imageData) return;
-  ctx.putImageData(imageData, 0, 0);
-
+function drawSelectionBox() {
   if (selection) {
     ctx.strokeStyle = "#00ffcc";
     ctx.lineWidth = 2;
@@ -82,7 +79,7 @@ function drawCanvas() {
   }
 }
 
-// OCR sobre zona seleccionada + validación
+// OCR con preprocesamiento real
 ocrBtn.addEventListener("click", () => {
   if (!selection) {
     ocrResult.textContent = "[Selecciona una zona con el mouse primero]";
@@ -91,25 +88,21 @@ ocrBtn.addEventListener("click", () => {
 
   const { x, y, width, height } = selection;
 
-  // Crear canvas temporal para preprocesamiento
   const tempCanvas = document.createElement("canvas");
-  const scaleFactor = 3; // Aumentamos resolución para OCR
+  const scaleFactor = 3;
   tempCanvas.width = width * scaleFactor;
   tempCanvas.height = height * scaleFactor;
   const tempCtx = tempCanvas.getContext("2d");
 
-  // Extraer imagen original desde el canvas
   const rawData = ctx.getImageData(x, y, width, height);
 
-  // Preprocesamiento: convertir a escala de grises + binarización
-  let grayData = tempCtx.createImageData(width, height);
+  const grayData = tempCtx.createImageData(width, height);
   for (let i = 0; i < rawData.data.length; i += 4) {
     const r = rawData.data[i];
     const g = rawData.data[i + 1];
     const b = rawData.data[i + 2];
     const gray = (r + g + b) / 3;
-
-    const bin = gray > 110 ? 255 : 0; // Umbral binarizado
+    const bin = gray > 110 ? 255 : 0;
 
     grayData.data[i] = bin;
     grayData.data[i + 1] = bin;
@@ -117,21 +110,17 @@ ocrBtn.addEventListener("click", () => {
     grayData.data[i + 3] = 255;
   }
 
-  // Dibujar imagen binarizada y escalar
-  const tempSmallCanvas = document.createElement("canvas");
-  tempSmallCanvas.width = width;
-  tempSmallCanvas.height = height;
-  const smallCtx = tempSmallCanvas.getContext("2d");
+  const smallCanvas = document.createElement("canvas");
+  smallCanvas.width = width;
+  smallCanvas.height = height;
+  const smallCtx = smallCanvas.getContext("2d");
   smallCtx.putImageData(grayData, 0, 0);
 
-  // Escalar a canvas grande
   tempCtx.imageSmoothingEnabled = false;
-  tempCtx.drawImage(tempSmallCanvas, 0, 0, width * scaleFactor, height * scaleFactor);
+  tempCtx.drawImage(smallCanvas, 0, 0, width * scaleFactor, height * scaleFactor);
 
-  // Mostrar estado
   ocrResult.textContent = "[Analizando OCR con preprocesamiento...]";
 
-  // OCR sobre imagen procesada
   Tesseract.recognize(tempCanvas, 'eng', {
     logger: m => console.log(m)
   }).then(({ data: { text } }) => {
@@ -139,11 +128,11 @@ ocrBtn.addEventListener("click", () => {
     let limpio = textoOriginal.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 
     const patrones = [
-      /^[A-Z]{2}[A-Z]{2}[0-9]{2}$/,       // BBWB40, CD0510
-      /^[A-Z]{3}[0-9]{2,3}$/,             // BJH61, VPU184
-      /^[RPZ]{1}[0-9]{3,5}$/,             // RP2001, Z3750
-      /^[A-Z]{2}[0-9]{2,4}$/,             // JA1000, WS1900
-      /^[A-Z]{1,4}[0-9]{1,4}$/            // General
+      /^[A-Z]{2}[A-Z]{2}[0-9]{2}$/,
+      /^[A-Z]{3}[0-9]{2,3}$/,
+      /^[RPZ]{1}[0-9]{3,5}$/,
+      /^[A-Z]{2}[0-9]{2,4}$/,
+      /^[A-Z]{1,4}[0-9]{1,4}$/
     ];
 
     const esPatente = patrones.some(p => limpio.match(p));
@@ -158,6 +147,14 @@ ocrBtn.addEventListener("click", () => {
     console.error(err);
   });
 });
+
+// Limpiar selección
+clearSelectionBtn.addEventListener("click", () => {
+  selection = null;
+  redrawCanvas();
+});
+
+// Selección con mouse funcional
 canvas.addEventListener("mousedown", (e) => {
   const rect = canvas.getBoundingClientRect();
   selection = {
@@ -174,10 +171,9 @@ canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect();
   selection.width = (e.clientX - rect.left) - selection.x;
   selection.height = (e.clientY - rect.top) - selection.y;
-  drawCanvas();
+  redrawCanvas();
 });
 
 canvas.addEventListener("mouseup", () => {
   isDragging = false;
 });
-
